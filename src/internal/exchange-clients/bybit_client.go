@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"price-tracker-service/src/domain"
 
 	"github.com/shopspring/decimal"
 )
@@ -23,14 +24,15 @@ type ByBitGetPriceResponse struct {
 }
 
 type ByBitGetPriceClientImpl struct {
+	config *domain.ExchangeClientConfig
 }
 
-func NewByBitGetPriceClientImpl() *ByBitGetPriceClientImpl {
-	return &ByBitGetPriceClientImpl{}
+func NewByBitGetPriceClientImpl(config *domain.ExchangeClientConfig) *ByBitGetPriceClientImpl {
+	return &ByBitGetPriceClientImpl{config: config}
 }
 
 func (r *ByBitGetPriceClientImpl) GetExchangePrice(pairName string) (decimal.Decimal, error) {
-	baseUrl := fmt.Sprintf("https://api-testnet.bybit.com/v5/market/tickers?category=spot&symbol=%s", pairName)
+	baseUrl := r.config.ByBitBaseUrl + fmt.Sprintf("market/tickers?category=spot&symbol=%s", pairName)
 
 	resp, err := http.Get(baseUrl)
 	if err != nil {

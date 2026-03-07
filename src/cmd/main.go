@@ -23,11 +23,16 @@ func main() {
 		panic(err)
 	}
 
+	exchangeConfig, err := config.LoadExchangeConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println(databaseConfig.Database)
 
-	binanceClient := exchange_clients.NewBinanceGetPriceClientImpl()
-	bybitClient := exchange_clients.NewByBitGetPriceClientImpl()
-	okxClient := exchange_clients.NewOkxGetPriceClientImpl()
+	binanceClient := exchange_clients.NewBinanceGetPriceClientImpl(exchangeConfig)
+	bybitClient := exchange_clients.NewByBitGetPriceClientImpl(exchangeConfig)
+	okxClient := exchange_clients.NewOkxGetPriceClientImpl(exchangeConfig)
 	clients := []domain.ExchangeClient{binanceClient, okxClient, bybitClient}
 
 	coreImpl := usecases.NewGetPriceFromExchangeUsecasesImpl(clients)

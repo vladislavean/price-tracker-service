@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"price-tracker-service/src/domain"
 
 	"github.com/shopspring/decimal"
 )
@@ -18,14 +19,16 @@ type OkxGetPriceClientResponse struct {
 	Data []OkxGetPriceClientPriceResponse `json:"data"`
 }
 
-type OkxGetPriceClientImpl struct{}
+type OkxGetPriceClientImpl struct {
+	config *domain.ExchangeClientConfig
+}
 
-func NewOkxGetPriceClientImpl() *OkxGetPriceClientImpl {
-	return &OkxGetPriceClientImpl{}
+func NewOkxGetPriceClientImpl(config *domain.ExchangeClientConfig) *OkxGetPriceClientImpl {
+	return &OkxGetPriceClientImpl{config: config}
 }
 
 func (r *OkxGetPriceClientImpl) GetExchangePrice(pairName string) (decimal.Decimal, error) {
-	baseUrl := fmt.Sprintf("https://www.okx.com/api/v5/market/ticker?instId=%s", pairName)
+	baseUrl := r.config.OkxBaseUrl + fmt.Sprintf("market/ticker?instId=%s", pairName)
 
 	resp, err := http.Get(baseUrl)
 	if err != nil {

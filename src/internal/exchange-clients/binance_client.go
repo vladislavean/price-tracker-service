@@ -10,14 +10,15 @@ import (
 )
 
 type BinanceGetPriceClientImpl struct {
+	config *domain.ExchangeClientConfig
 }
 
-func NewBinanceGetPriceClientImpl() *BinanceGetPriceClientImpl {
-	return &BinanceGetPriceClientImpl{}
+func NewBinanceGetPriceClientImpl(config *domain.ExchangeClientConfig) *BinanceGetPriceClientImpl {
+	return &BinanceGetPriceClientImpl{config: config}
 }
 
 func (r *BinanceGetPriceClientImpl) GetExchangePrice(pairName string) (decimal.Decimal, error) {
-	baseUrl := fmt.Sprintf("https://api.binance.com/api/v3/ticker/price?symbol=%s", pairName)
+	baseUrl := r.config.BinanceBaseUrl + fmt.Sprintf("ticker/price?symbol=%s", pairName)
 
 	resp, err := http.Get(baseUrl)
 	if err != nil {

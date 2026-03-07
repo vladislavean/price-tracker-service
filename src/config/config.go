@@ -25,3 +25,13 @@ func LoadDatabaseConfig() (*domain.DatabaseConfig, error) {
 
 	return &databaseConfig, nil
 }
+
+func LoadExchangeConfig() (*domain.ExchangeClientConfig, error) {
+	var exchangeConfig domain.ExchangeClientConfig
+
+	if err := viper.Unmarshal(&exchangeConfig); err != nil {
+		return nil, err
+	}
+
+	return &exchangeConfig, nil
+}
