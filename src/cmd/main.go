@@ -25,19 +25,17 @@ func main() {
 
 	fmt.Println(databaseConfig.Database)
 
-	binanceClient := exchange_clients.NewBinanceGetPriceRequest()
-	bybitClient := exchange_clients.NewByBitGetPriceRequest()
-	okxClient := exchange_clients.NewOkxGetPriceRequest()
-
+	binanceClient := exchange_clients.NewBinanceGetPriceClientImpl()
+	bybitClient := exchange_clients.NewByBitGetPriceClientImpl()
+	okxClient := exchange_clients.NewOkxGetPriceClientImpl()
 	clients := []domain.ExchangeClient{binanceClient, okxClient, bybitClient}
 
-	coreImpl := usecases.NewGetPriceFromExchangeImpl(clients)
+	coreImpl := usecases.NewGetPriceFromExchangeUsecasesImpl(clients)
 
 	handler := handlers.NewGetPriceHandler(coreImpl)
 
-	api := NewApi(handler)
-
-	api.RegisterApi(g)
+	api := NewControllers(handler)
+	api.RegisterControllers(g)
 
 	g.Run(":4400")
 }

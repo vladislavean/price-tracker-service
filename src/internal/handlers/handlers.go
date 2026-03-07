@@ -13,22 +13,22 @@ type BinanceGetPriceRequestDTO struct {
 }
 
 type BinanceGetPriceHandler struct {
-	u *usecases.GetPriceFromExchangeImpl
+	usecases *usecases.GetPriceFromExchangeUsecasesImpl
 }
 
-func NewGetPriceHandler(getPrice *usecases.GetPriceFromExchangeImpl) *BinanceGetPriceHandler {
+func NewGetPriceHandler(getPrice *usecases.GetPriceFromExchangeUsecasesImpl) *BinanceGetPriceHandler {
 	return &BinanceGetPriceHandler{getPrice}
 }
 
-func (u *BinanceGetPriceHandler) Handle(c *gin.Context) {
+func (h *BinanceGetPriceHandler) Handle(c *gin.Context) {
 	var dto BinanceGetPriceRequestDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	price, err := u.u.GetPriceFromExchange(dto.PairName, dto.ExchangeName)
+	price, err := h.usecases.GetPriceFromExchange(dto.PairName, dto.ExchangeName)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
 	c.JSON(http.StatusOK, gin.H{"price": price})

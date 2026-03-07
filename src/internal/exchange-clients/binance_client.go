@@ -9,36 +9,36 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type BinanceGetPriceRequest struct {
+type BinanceGetPriceClientImpl struct {
 }
 
-func NewBinanceGetPriceRequest() *BinanceGetPriceRequest {
-	return &BinanceGetPriceRequest{}
+func NewBinanceGetPriceClientImpl() *BinanceGetPriceClientImpl {
+	return &BinanceGetPriceClientImpl{}
 }
 
-func (r *BinanceGetPriceRequest) GetExchangePrice(pairName string) (decimal.Decimal, error) {
+func (r *BinanceGetPriceClientImpl) GetExchangePrice(pairName string) (decimal.Decimal, error) {
 	baseUrl := fmt.Sprintf("https://api.binance.com/api/v3/ticker/price?symbol=%s", pairName)
 
 	resp, err := http.Get(baseUrl)
 	if err != nil {
-		return decimal.NewFromInt(0), err
+		return decimal.Zero, err
 	}
 	defer resp.Body.Close()
 
 	var data domain.BinanceGetPriceResponse
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		return decimal.NewFromInt(0), err
+		return decimal.Zero, err
 	}
 
 	val, err := decimal.NewFromString(data.Price)
 	if err != nil {
-		return decimal.NewFromInt(0), err
+		return decimal.Zero, err
 	}
 
 	return val, nil
 }
 
-func (r *BinanceGetPriceRequest) GetName() string {
+func (r *BinanceGetPriceClientImpl) GetName() string {
 	return "binance"
 }

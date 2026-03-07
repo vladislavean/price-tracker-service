@@ -2,16 +2,16 @@ package exchange_clients
 
 import "github.com/shopspring/decimal"
 
-type OkxGetPriceRequest struct{}
+type OkxGetPriceClientImpl struct{}
 
-func NewOkxGetPriceRequest() *OkxGetPriceRequest {
-	return &OkxGetPriceRequest{}
+func NewOkxGetPriceClientImpl() *OkxGetPriceClientImpl {
+	return &OkxGetPriceClientImpl{}
 }
 
-func (r *OkxGetPriceRequest) GetExchangePrice(pairName string) (decimal.Decimal, error) {
+func (r *OkxGetPriceClientImpl) GetExchangePrice(pairName string) (decimal.Decimal, error) {
 	panic("implement me")
 }
 
-func (r *OkxGetPriceRequest) GetName() string {
+func (r *OkxGetPriceClientImpl) GetName() string {
 	return "okx"
 }

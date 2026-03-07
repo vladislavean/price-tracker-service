@@ -2,17 +2,17 @@ package exchange_clients
 
 import "github.com/shopspring/decimal"
 
-type ByBitGetPriceRequest struct {
+type ByBitGetPriceClientImpl struct {
 }
 
-func NewByBitGetPriceRequest() *ByBitGetPriceRequest {
-	return &ByBitGetPriceRequest{}
+func NewByBitGetPriceClientImpl() *ByBitGetPriceClientImpl {
+	return &ByBitGetPriceClientImpl{}
 }
 
-func (r *ByBitGetPriceRequest) GetExchangePrice(pairName string) (decimal.Decimal, error) {
+func (r *ByBitGetPriceClientImpl) GetExchangePrice(pairName string) (decimal.Decimal, error) {
 	panic("implement me")
 }
 
-func (r *ByBitGetPriceRequest) GetName() string {
+func (r *ByBitGetPriceClientImpl) GetName() string {
 	return "bybit"
 }

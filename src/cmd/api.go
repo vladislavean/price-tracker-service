@@ -10,10 +10,10 @@ type Api struct {
 	getPrice *handlers.BinanceGetPriceHandler
 }
 
-func NewApi(getPrice *handlers.BinanceGetPriceHandler) *Api {
+func NewControllers(getPrice *handlers.BinanceGetPriceHandler) *Api {
 	return &Api{getPrice}
 }
 
-func (a *Api) RegisterApi(r *gin.Engine) {
+func (a *Api) RegisterControllers(r *gin.Engine) {
 	r.GET("/get-price", a.getPrice.Handle)
 }

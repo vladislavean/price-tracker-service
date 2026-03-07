@@ -7,15 +7,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type GetPriceFromExchangeImpl struct {
+type GetPriceFromExchangeUsecasesImpl struct {
 	clients []domain.ExchangeClient
 }
 
-func NewGetPriceFromExchangeImpl(clients []domain.ExchangeClient) *GetPriceFromExchangeImpl {
-	return &GetPriceFromExchangeImpl{clients}
+func NewGetPriceFromExchangeUsecasesImpl(clients []domain.ExchangeClient) *GetPriceFromExchangeUsecasesImpl {
+	return &GetPriceFromExchangeUsecasesImpl{clients}
 }
 
-func (impl *GetPriceFromExchangeImpl) GetPriceFromExchange(pairName string, exchangeName string) (decimal.Decimal, error) {
+func (impl *GetPriceFromExchangeUsecasesImpl) GetPriceFromExchange(pairName string, exchangeName string) (decimal.Decimal, error) {
 	for _, client := range impl.clients {
 		if client.GetName() == exchangeName {
 			val, err := client.GetExchangePrice(pairName)
