@@ -35,3 +35,11 @@ func LoadExchangeConfig() (*domain.ExchangeClientConfig, error) {
 
 	return &exchangeConfig, nil
 }
+
+func LoadRedisConfig() (*domain.RedisClientConfig, error) {
+	var redisConfig domain.RedisClientConfig
+	if err := viper.Unmarshal(&redisConfig); err != nil {
+		return nil, err
+	}
+	return &redisConfig, nil
+}

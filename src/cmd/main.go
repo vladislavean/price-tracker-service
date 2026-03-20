@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"price-tracker-service/src/config"
 	"price-tracker-service/src/domain"
-	exchange_clients "price-tracker-service/src/internal/exchange-clients"
+	exchangeclients "price-tracker-service/src/internal/exchange-clients"
 	"price-tracker-service/src/internal/handlers"
+	redisintegeration "price-tracker-service/src/internal/redis-integeration"
 	"price-tracker-service/src/internal/usecases"
 
 	"github.com/gin-gonic/gin"
@@ -28,19 +30,31 @@ func main() {
 		panic(err)
 	}
 
+	redisConfig, err := config.LoadRedisConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println(databaseConfig.Database)
 
-	binanceClient := exchange_clients.NewBinanceGetPriceClientImpl(exchangeConfig)
-	bybitClient := exchange_clients.NewByBitGetPriceClientImpl(exchangeConfig)
-	okxClient := exchange_clients.NewOkxGetPriceClientImpl(exchangeConfig)
+	binanceClient := exchangeclients.NewBinanceGetPriceClientImpl(exchangeConfig)
+	bybitClient := exchangeclients.NewByBitGetPriceClientImpl(exchangeConfig)
+	okxClient := exchangeclients.NewOkxGetPriceClientImpl(exchangeConfig)
 	clients := []domain.ExchangeClient{binanceClient, okxClient, bybitClient}
 
-	coreImpl := usecases.NewGetPriceFromExchangeUsecasesImpl(clients)
+	redisClient := redisintegeration.NewRedisPriceExchangeClientImpl(redisConfig)
+
+	coreImpl := usecases.NewGetPriceFromExchangeUsecasesImpl(clients, redisClient)
 
 	handler := handlers.NewGetPriceHandler(coreImpl)
 
 	api := NewControllers(handler)
 	api.RegisterControllers(g)
 
-	g.Run(":4400")
+	go func() {
+		err := g.Run(":4400")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 }
