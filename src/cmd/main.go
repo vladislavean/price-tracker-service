@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"price-tracker-service/src/config"
 	"price-tracker-service/src/domain"
 	exchangeclients "price-tracker-service/src/internal/exchange-clients"
@@ -51,10 +50,5 @@ func main() {
 	api := NewControllers(handler)
 	api.RegisterControllers(g)
 
-	go func() {
-		err := g.Run(":4400")
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+	g.Run(":4400")
 }
