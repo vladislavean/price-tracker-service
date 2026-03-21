@@ -1,8 +1,10 @@
 package usecases
 
 import (
+	"context"
 	"errors"
 	"price-tracker-service/src/domain"
+	"price-tracker-service/src/internal/redisintegration"
 	"testing"
 
 	"github.com/shopspring/decimal"
@@ -18,7 +20,7 @@ func (m *mockExchangeClient) GetName() string {
 	return m.name
 }
 
-func (m *mockExchangeClient) GetExchangePrice(pair string) (decimal.Decimal, error) {
+func (m *mockExchangeClient) GetExchangePrice(ctx context.Context, pair string) (decimal.Decimal, error) {
 	if m.err != nil {
 		return decimal.Zero, m.err
 	}
@@ -46,8 +48,20 @@ func Test_GetPriceFromExchangeUsecasesImpl_GetPriceFromExchange(t *testing.T) {
 			},
 		},
 	}
+	var clientsMap = make(map[string]domain.ExchangeClient, len(clients))
+	for _, client := range clients {
+		clientsMap[client.GetName()] = client
+	}
+
+	config := &domain.RedisClientConfig{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	}
+
 	impl := &GetPriceFromExchangeUsecasesImpl{
-		clients: clients,
+		clients:     clientsMap,
+		redisClient: redisintegration.NewRedisPriceExchangeClientImpl(config),
 	}
 	tests := []struct {
 		name        string
@@ -102,8 +116,8 @@ func Test_GetPriceFromExchangeUsecasesImpl_GetPriceFromExchange(t *testing.T) {
 			m.err = nil
 
 			tt.setup()
-
-			got, err := impl.GetPriceFromExchange(tt.pair, tt.exchange)
+			ctx := context.Background()
+			got, err := impl.GetPriceFromExchange(ctx, tt.pair, tt.exchange)
 
 			if tt.wantErr && err == nil {
 				t.Fatalf("expected error, got nil")

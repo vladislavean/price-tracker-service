@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"price-tracker-service/src/config"
 	"price-tracker-service/src/domain"
-	exchangeclients "price-tracker-service/src/internal/exchange-clients"
+	exchangeclients "price-tracker-service/src/internal/exchangeclients"
 	"price-tracker-service/src/internal/handlers"
-	redisintegeration "price-tracker-service/src/internal/redis-integeration"
+	redisintegeration "price-tracker-service/src/internal/redisintegration"
 	"price-tracker-service/src/internal/usecases"
 
 	"github.com/gin-gonic/gin"
@@ -36,14 +36,19 @@ func main() {
 
 	fmt.Println(databaseConfig.Database)
 
+	redisClient := redisintegeration.NewRedisPriceExchangeClientImpl(redisConfig)
+
 	binanceClient := exchangeclients.NewBinanceGetPriceClientImpl(exchangeConfig)
 	bybitClient := exchangeclients.NewByBitGetPriceClientImpl(exchangeConfig)
 	okxClient := exchangeclients.NewOkxGetPriceClientImpl(exchangeConfig)
 	clients := []domain.ExchangeClient{binanceClient, okxClient, bybitClient}
 
-	redisClient := redisintegeration.NewRedisPriceExchangeClientImpl(redisConfig)
+	clientsMap := make(map[string]domain.ExchangeClient, len(clients))
+	for _, client := range clients {
+		clientsMap[client.GetName()] = client
+	}
 
-	coreImpl := usecases.NewGetPriceFromExchangeUsecasesImpl(clients, redisClient)
+	coreImpl := usecases.NewGetPriceFromExchangeUsecasesImpl(clientsMap, redisClient)
 
 	handler := handlers.NewGetPriceHandler(coreImpl)
 

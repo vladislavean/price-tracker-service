@@ -1,10 +1,14 @@
 package domain
 
-import "github.com/shopspring/decimal"
+import (
+	"context"
+
+	"github.com/shopspring/decimal"
+)
 
 type ExchangeClient interface {
 	GetName() string
-	GetExchangePrice(pairName string) (decimal.Decimal, error)
+	GetExchangePrice(ctx context.Context, pairName string) (decimal.Decimal, error)
 }
 
 type BinanceGetPriceResponse struct {

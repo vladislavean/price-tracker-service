@@ -1,47 +1,48 @@
 package usecases
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"price-tracker-service/src/domain"
 
 	"github.com/shopspring/decimal"
 )
 
 type GetPriceFromExchangeUsecasesImpl struct {
-	clients     []domain.ExchangeClient
+	clients     map[string]domain.ExchangeClient
 	redisClient domain.RedisGetPriceExchangeClient
 }
 
 func NewGetPriceFromExchangeUsecasesImpl(
-	clients []domain.ExchangeClient,
+	clients map[string]domain.ExchangeClient,
 	redisClient domain.RedisGetPriceExchangeClient) *GetPriceFromExchangeUsecasesImpl {
 	return &GetPriceFromExchangeUsecasesImpl{clients, redisClient}
 }
 
-func (impl *GetPriceFromExchangeUsecasesImpl) GetPriceFromExchange(pairName string, exchangeName string) (decimal.Decimal, error) {
+func (impl *GetPriceFromExchangeUsecasesImpl) GetPriceFromExchange(ctx context.Context, pairName string, exchangeName string) (decimal.Decimal, error) {
 	priceFromRedis, err := impl.redisClient.GetPriceExchange(pairName)
 	if err != nil && priceFromRedis.IsZero() {
-		log.Println(err)
+		slog.Warn("redis get failed, falling back to exchange", "pair", pairName, "error", err)
 	}
 	if !priceFromRedis.IsZero() {
 		return priceFromRedis, nil
 	}
 
-	for _, client := range impl.clients {
-		if client.GetName() == exchangeName {
-			val, err := client.GetExchangePrice(pairName)
-			if err != nil {
-				return decimal.Zero, err
-			}
-
-			err = impl.redisClient.SetPriceExchange(pairName, val)
-			if err != nil {
-				log.Println(err)
-			}
-
-			return val, nil
-		}
+	var client = impl.clients[exchangeName]
+	if client == nil {
+		return decimal.Zero, fmt.Errorf("exchange %s does not exist", exchangeName)
 	}
-	return decimal.Zero, fmt.Errorf("exchange %s does not exist", exchangeName)
+
+	val, err := client.GetExchangePrice(ctx, pairName)
+	if err != nil {
+		return decimal.Zero, err
+	}
+
+	err = impl.redisClient.SetPriceExchange(pairName, val)
+	if err != nil {
+		slog.Warn("redis get failed, falling back to exchange", "pair", pairName, "error", err)
+	}
+
+	return val, nil
 }

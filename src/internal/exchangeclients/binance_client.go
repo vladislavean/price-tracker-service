@@ -1,10 +1,12 @@
-package exchange_clients
+package exchangeclients
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"price-tracker-service/src/domain"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -17,12 +19,18 @@ func NewBinanceGetPriceClientImpl(config *domain.ExchangeClientConfig) *BinanceG
 	return &BinanceGetPriceClientImpl{config: config}
 }
 
-func (r *BinanceGetPriceClientImpl) GetExchangePrice(pairName string) (decimal.Decimal, error) {
+func (r *BinanceGetPriceClientImpl) GetExchangePrice(ctx context.Context, pairName string) (decimal.Decimal, error) {
 	baseUrl := r.config.BinanceBaseUrl + fmt.Sprintf("ticker/price?symbol=%s", pairName)
 
-	resp, err := http.Get(baseUrl)
-	if err != nil {
-		return decimal.Zero, err
+	httpClient := &http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, baseUrl, nil)
+	resp, err := httpClient.Do(req)
+
+	if resp.StatusCode != http.StatusOK {
+		return decimal.Zero, fmt.Errorf("binance: unexpected status %d for pair %s", resp.StatusCode, pairName)
 	}
 	defer resp.Body.Close()
 

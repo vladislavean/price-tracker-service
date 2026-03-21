@@ -1,9 +1,9 @@
-package redis_integeration
+package redisintegration
 
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"price-tracker-service/src/domain"
 	"time"
 
@@ -12,25 +12,31 @@ import (
 )
 
 type RedisPriceExchangeClientImpl struct {
-	config *domain.RedisClientConfig
+	client *redis.Client
 }
 
 func NewRedisPriceExchangeClientImpl(config *domain.RedisClientConfig) *RedisPriceExchangeClientImpl {
-	return &RedisPriceExchangeClientImpl{config: config}
+	client := redis.NewClient(&redis.Options{
+		Addr:     config.Addr,
+		Password: config.Password,
+		DB:       config.DB,
+	})
+	return &RedisPriceExchangeClientImpl{client: client}
 }
 
 func (r *RedisPriceExchangeClientImpl) GetPriceExchange(pairName string) (decimal.Decimal, error) {
-	conn := r.getConnection()
-	defer func(conn *redis.Client) {
-		err := conn.Close()
-		if err != nil {
-			log.Printf("Error closing connection to redis: %v", err)
-		}
-	}(conn)
+	conn := r.client
+
 	if conn == nil {
 		err := fmt.Errorf("cannot get price redis connection")
 		return decimal.Zero, err
 	}
+	defer func(conn *redis.Client) {
+		err := conn.Close()
+		if err != nil {
+			slog.Error("error closing redis connection", "error", err)
+		}
+	}(conn)
 
 	ctx := context.Background()
 	result := conn.Get(ctx, pairName)
@@ -47,30 +53,22 @@ func (r *RedisPriceExchangeClientImpl) GetPriceExchange(pairName string) (decima
 }
 
 func (r *RedisPriceExchangeClientImpl) SetPriceExchange(pairName string, price decimal.Decimal) error {
-	conn := r.getConnection()
-	defer func(conn *redis.Client) {
-		err := conn.Close()
-		if err != nil {
-			log.Printf("Error closing connection to redis: %v", err)
-		}
-	}(conn)
+	conn := r.client
+
 	if conn == nil {
 		err := fmt.Errorf("cannot get price redis connection")
 		return err
 	}
+
+	defer func(conn *redis.Client) {
+		err := conn.Close()
+		if err != nil {
+			slog.Error("error closing redis connection", "error", err)
+		}
+	}(conn)
+
 	ctx := context.Background()
 
 	conn.Set(ctx, pairName, price.String(), time.Minute)
 	return nil
-}
-
-func (r *RedisPriceExchangeClientImpl) getConnection() *redis.Client {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     r.config.Addr,
-		Password: "",
-		DB:       r.config.DB,
-		Protocol: 2,
-	})
-
-	return rdb
 }

@@ -1,0 +1,9 @@
+linters:
+  enable:
+    - errcheck
+    - staticcheck
+    - gosec
+    - revive
+    - misspell
+
+version: 2
