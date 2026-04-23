@@ -53,6 +53,33 @@ func (r *RedisPriceExchangeClientImpl) GetPriceExchange(pairName string) (decima
 	return dcml, nil
 }
 
+func (r *RedisPriceExchangeClientImpl) ForceDeletePriceByPairName(pairName string) error {
+	conn := r.client
+
+	if conn == nil {
+		err := fmt.Errorf("cannot get price redis connection")
+		return err
+	}
+
+	defer func(conn *redis.Client) {
+		err := conn.Close()
+		if err != nil {
+			slog.Error("error closing redis connection", "error", err)
+		}
+	}(conn)
+
+	ctx := context.Background()
+	res, err := conn.Del(ctx, pairName).Result()
+	if err != nil {
+		return err
+	}
+
+	if res < 1 {
+		return fmt.Errorf("delete 0 elem")
+	}
+	return nil
+}
+
 func (r *RedisPriceExchangeClientImpl) SetPriceExchange(pairName string, price decimal.Decimal) error {
 	conn := r.client
 
