@@ -17,9 +17,10 @@ type RedisPriceExchangeClientImpl struct {
 
 func NewRedisPriceExchangeClientImpl(config *domain.RedisClientConfig) *RedisPriceExchangeClientImpl {
 	client := redis.NewClient(&redis.Options{
-		Addr:     config.Addr,
-		Password: config.Password,
-		DB:       config.DB,
+		Addr:        config.Addr,
+		Password:    config.Password,
+		DB:          config.DB,
+		PoolTimeout: time.Millisecond * 100,
 	})
 	return &RedisPriceExchangeClientImpl{client: client}
 }
