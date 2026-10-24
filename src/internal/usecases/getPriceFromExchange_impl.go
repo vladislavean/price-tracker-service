@@ -53,6 +53,7 @@ func (impl *GetPriceFromExchangeUsecasesImpl) GetPriceFromExchange(ctx context.C
 	f, _ := strconv.ParseFloat(val.String(), 64)
 
 	if err := impl.repository.InsertLog(ctx, &domain.PriceChangesLog{
+		Client:     exchangeName,
 		PairName:   pairName,
 		Value:      f,
 		CreateDate: time.Now(),

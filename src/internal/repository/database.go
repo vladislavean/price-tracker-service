@@ -63,6 +63,7 @@ func ensureTable(ctx context.Context, conn driver.Conn) error {
 	CREATE TABLE price_changes_log
 	(
 		id         UUID,
+		client 	   String,
 		pairname   String,
 		value      Float64,
 		createDate DateTime
