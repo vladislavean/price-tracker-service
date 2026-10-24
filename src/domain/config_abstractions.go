@@ -2,6 +2,7 @@ package domain
 
 type DatabaseConfig struct {
 	Host     string `mapstructure:"database_host"`
+	Port     string `mapstructure:"database_port"`
 	User     string `mapstructure:"database_user"`
 	Password string `mapstructure:"database_password"`
 	Database string `mapstructure:"database_name"`

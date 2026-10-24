@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"price-tracker-service/src/config"
 	"price-tracker-service/src/domain"
 	exchangeclients "price-tracker-service/src/internal/exchangeclients"
 	"price-tracker-service/src/internal/handlers"
 	redisintegeration "price-tracker-service/src/internal/redisintegration"
+	"price-tracker-service/src/internal/repository"
 	"price-tracker-service/src/internal/usecases"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +38,11 @@ func main() {
 
 	fmt.Println(databaseConfig.Database)
 
+	clickLogRepo, err := repository.NewClickHouseLogRepository(databaseConfig)
+	if err != nil {
+		slog.Warn("Cannot get new repository", "Error", err)
+	}
+
 	redisClient := redisintegeration.NewRedisPriceExchangeClientImpl(redisConfig)
 
 	binanceClient := exchangeclients.NewBinanceGetPriceClientImpl(exchangeConfig)
@@ -48,7 +55,7 @@ func main() {
 		clientsMap[client.GetName()] = client
 	}
 
-	coreImpl := usecases.NewGetPriceFromExchangeUsecasesImpl(clientsMap, redisClient)
+	coreImpl := usecases.NewGetPriceFromExchangeUsecasesImpl(clientsMap, redisClient, clickLogRepo)
 
 	handler := handlers.NewGetPriceHandler(coreImpl)
 

@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 	"price-tracker-service/src/domain"
+	"price-tracker-service/src/internal/repository"
+	"strconv"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -12,12 +15,14 @@ import (
 type GetPriceFromExchangeUsecasesImpl struct {
 	clients     map[string]domain.ExchangeClient
 	redisClient domain.RedisGetPriceExchangeClient
+	repository  *repository.ClickHouseLogRepository
 }
 
 func NewGetPriceFromExchangeUsecasesImpl(
 	clients map[string]domain.ExchangeClient,
-	redisClient domain.RedisGetPriceExchangeClient) *GetPriceFromExchangeUsecasesImpl {
-	return &GetPriceFromExchangeUsecasesImpl{clients, redisClient}
+	redisClient domain.RedisGetPriceExchangeClient,
+	repository *repository.ClickHouseLogRepository) *GetPriceFromExchangeUsecasesImpl {
+	return &GetPriceFromExchangeUsecasesImpl{clients, redisClient, repository}
 }
 
 func (impl *GetPriceFromExchangeUsecasesImpl) GetPriceFromExchange(ctx context.Context, pairName string, exchangeName string) (decimal.Decimal, error) {
@@ -42,6 +47,17 @@ func (impl *GetPriceFromExchangeUsecasesImpl) GetPriceFromExchange(ctx context.C
 	err = impl.redisClient.SetPriceExchange(pairName, val)
 	if err != nil {
 		slog.Warn("redis get failed, falling back to exchange", "pair", pairName, "error", err)
+	}
+
+	// logs
+	f, _ := strconv.ParseFloat(val.String(), 64)
+
+	if err := impl.repository.InsertLog(ctx, &domain.PriceChangesLog{
+		PairName:   pairName,
+		Value:      f,
+		CreateDate: time.Now(),
+	}); err != nil {
+		slog.Warn("error write log", "err", err)
 	}
 
 	return val, nil
