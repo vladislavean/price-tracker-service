@@ -86,7 +86,7 @@ func (c *ClickHouseLogRepository) InsertLog(ctx context.Context, log *domain.Pri
 	}
 
 	uuid, _ := uuid.NewUUID()
-	if err := batch.Append(uuid, log.PairName, log.Value, log.CreateDate); err != nil {
+	if err := batch.Append(uuid, log.Client, log.PairName, log.Value, log.CreateDate); err != nil {
 		return fmt.Errorf("append to batch: %w", err)
 	}
 
