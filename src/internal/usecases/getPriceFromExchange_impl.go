@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"price-tracker-service/src/domain"
-	"price-tracker-service/src/internal/repository"
 	"strconv"
 	"time"
 
@@ -15,13 +14,13 @@ import (
 type GetPriceFromExchangeUsecasesImpl struct {
 	clients     map[string]domain.ExchangeClient
 	redisClient domain.RedisGetPriceExchangeClient
-	repository  *repository.ClickHouseLogRepository
+	repository  domain.LogRepository
 }
 
 func NewGetPriceFromExchangeUsecasesImpl(
 	clients map[string]domain.ExchangeClient,
 	redisClient domain.RedisGetPriceExchangeClient,
-	repository *repository.ClickHouseLogRepository) *GetPriceFromExchangeUsecasesImpl {
+	repository domain.LogRepository) *GetPriceFromExchangeUsecasesImpl {
 	return &GetPriceFromExchangeUsecasesImpl{clients, redisClient, repository}
 }
 
@@ -51,7 +50,6 @@ func (impl *GetPriceFromExchangeUsecasesImpl) GetPriceFromExchange(ctx context.C
 
 	// logs
 	f, _ := strconv.ParseFloat(val.String(), 64)
-
 	if err := impl.repository.InsertLog(ctx, &domain.PriceChangesLog{
 		Client:     exchangeName,
 		PairName:   pairName,

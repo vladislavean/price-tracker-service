@@ -10,6 +10,14 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type repositoryMock struct {
+	err error
+}
+
+func (r *repositoryMock) InsertLog(ctx context.Context, log *domain.PriceChangesLog) error {
+	return r.err
+}
+
 type mockExchangeClient struct {
 	name        string
 	priceByPair map[string]decimal.Decimal
@@ -62,6 +70,9 @@ func Test_GetPriceFromExchangeUsecasesImpl_GetPriceFromExchange(t *testing.T) {
 	impl := &GetPriceFromExchangeUsecasesImpl{
 		clients:     clientsMap,
 		redisClient: redisintegration.NewRedisPriceExchangeClientImpl(config),
+		repository: &repositoryMock{
+			err: nil,
+		},
 	}
 	tests := []struct {
 		name        string

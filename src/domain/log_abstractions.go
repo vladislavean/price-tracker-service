@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 )
 
@@ -9,4 +10,8 @@ type PriceChangesLog struct {
 	PairName   string    `mapstructure:"pairname"`
 	Value      float64   `mapstructure:"price_value"`
 	CreateDate time.Time `mapstructure:"create_date"`
+}
+
+type LogRepository interface {
+	InsertLog(ctx context.Context, log *PriceChangesLog) error
 }
